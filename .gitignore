@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+# Chặn tất cả các file cấu hình .yml
+*.yml
