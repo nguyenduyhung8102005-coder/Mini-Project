@@ -31,7 +31,7 @@ public class CategoryEntity {
     @Enumerated(EnumType.STRING)
     private CategoryStatus status;
 
-    @OneToMany(mappedBy = "category",fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "category",fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ProductEntity> products;
 
     @Column(name = "create_at")
