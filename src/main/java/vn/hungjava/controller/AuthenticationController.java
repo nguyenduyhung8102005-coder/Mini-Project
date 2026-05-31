@@ -8,8 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import vn.hungjava.controller.request.SigInRequest;
+import vn.hungjava.controller.request.SignInRequest;
 import vn.hungjava.controller.response.TokenResponse;
+import vn.hungjava.service.AuthenticationService;
 
 @RestController
 @RequestMapping("/auth")
@@ -18,12 +19,14 @@ import vn.hungjava.controller.response.TokenResponse;
 @Tag(name = "Authentication")
 public class AuthenticationController {
 
+    private final AuthenticationService authenticationService;
+
     @Operation(summary = "Access token", description = "get access token an refresh token by username and password")
     @PostMapping("/access-token")
-    public TokenResponse getAccessToken(@RequestBody SigInRequest request) {
+    public TokenResponse getAccessToken(@RequestBody SignInRequest request) {
         log.info("Access token request");
-        return TokenResponse.builder().accessToken("DUMMY-ACCESS-TOKEN").refreshToken("DUMMY-REFRESH-TOKEN").build();
-
+        //return TokenResponse.builder().accessToken("DUMMY-ACCESS-TOKEN").refreshToken("DUMMY-REFRESH-TOKEN").build();
+        return authenticationService.getAccessToken(request);
     }
 
     @Operation(summary = "Refresh token", description = "get new access token by refreshToken")

@@ -5,7 +5,7 @@ import lombok.Getter;
 import java.io.Serializable;
 
 @Getter
-public class SigInRequest implements Serializable {
+public class SignInRequest implements Serializable {
     private String username;
     private String password;
     private String platform;
