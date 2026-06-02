@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -112,6 +113,43 @@ public class GlobalException {
         errorResponse.setStatus(HttpStatus.NOT_FOUND.value());
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
         errorResponse.setError("Not Found");
+        errorResponse.setMessage(e.getMessage());
+
+        return errorResponse;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "403",
+                    description = "Forbidden", // Lưu ý: Trong ảnh ghi "Bad Request", nhưng thường 404 là "Not Found"
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    examples = @ExampleObject(
+                                            name = "403 Response",
+                                            summary = "Handle exception when resource Forbidden",
+                                            value = """
+                            {
+                                "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                "status": 403,
+                                "path": "/api/v1/...",
+                                "error": "Forbidden",
+                                "message": "{data} ..."
+                            }
+                            """
+                                    )
+                            )
+                    }
+            )
+    })
+    public ErrorResponse handleAccessDeniedException(AccessDeniedException e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setStatus(HttpStatus.FORBIDDEN.value());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setError("Forbidden");
         errorResponse.setMessage(e.getMessage());
 
         return errorResponse;
