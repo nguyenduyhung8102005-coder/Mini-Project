@@ -13,6 +13,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +32,7 @@ import java.util.Date;
 @Component
 @Slf4j(topic = "CUSTOMIZE-REQUEST-FILTER")
 @RequiredArgsConstructor
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class CustomizeRequestFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserServiceDetail userServiceDetail;
@@ -55,7 +57,7 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
                 return;
             }
 
-            UserDetails userDetails = userServiceDetail.UserServiceDetail().loadUserByUsername(username);
+            UserDetails userDetails = userServiceDetail.loadUserByUsername(username);
 
             SecurityContext  securityContext = SecurityContextHolder.createEmptyContext();
             UsernamePasswordAuthenticationToken  authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

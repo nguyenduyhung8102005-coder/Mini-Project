@@ -40,7 +40,7 @@ public class AppConfig {
     public AuthenticationProvider  authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setPasswordEncoder(encoder());
-        authProvider.setUserDetailsService(userServiceDetail.UserServiceDetail());
+        authProvider.setUserDetailsService(userServiceDetail);
         return authProvider;
     }
 

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import vn.hungjava.controller.request.UserCreationRequest;
@@ -31,6 +32,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/list")
+    @PreAuthorize("hasAnyAuthorities('manager', 'admin')")
     public Map<String, Object> getListUser(@RequestParam(required = false) String keyword,
                                            @RequestParam(required = false) String sort,
                                            @RequestParam(defaultValue = "0") int page,
@@ -46,6 +48,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
+    @PreAuthorize("hasAuthorities('user')")
     public Map<String, Object> getUser(@PathVariable("userId") @Min(1) long userId){
         log.info("Get user");
         UserResponse user = userService.findById(userId);
@@ -91,6 +94,7 @@ public class UserController {
     }
 
     @DeleteMapping("/delete/{userId}")
+    @PreAuthorize("hasAuthorities('admin')")
     public Map<String, Object> deleteUser(@PathVariable @Min(1) long userId){
         log.info("Delete user");
         userService.deleted(userId);

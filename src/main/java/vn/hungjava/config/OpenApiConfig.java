@@ -22,7 +22,7 @@ public class OpenApiConfig {
     public GroupedOpenApi publicApi(@Value("${openapi.service.api-docs}") String apiDocs) {
         return GroupedOpenApi.builder()
                 .group(apiDocs) // Tên nhóm lấy từ file cấu hình (ví dụ: backend-service)
-                .packagesToScan("vn.tayjava.controller") // Chỉ quét các controller trong package này
+                .packagesToScan("vn.hungjava.controller") // Chỉ quét các controller trong package này
                 .build();
     }
 
