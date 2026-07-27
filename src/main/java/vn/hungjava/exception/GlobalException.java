@@ -136,7 +136,7 @@ public class GlobalException {
                                 "status": 403,
                                 "path": "/api/v1/...",
                                 "error": "Forbidden",
-                                "message": "{data} ..."
+                                "message": "Access is denied"
                             }
                             """
                                     )
@@ -154,6 +154,7 @@ public class GlobalException {
 
         return errorResponse;
     }
+
 
     @ExceptionHandler(InvalidDataException.class)
     @ResponseStatus(CONFLICT)

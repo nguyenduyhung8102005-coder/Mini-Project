@@ -32,7 +32,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/list")
-    @PreAuthorize("hasAnyAuthorities('manager', 'admin')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_MANAGER')")
     public Map<String, Object> getListUser(@RequestParam(required = false) String keyword,
                                            @RequestParam(required = false) String sort,
                                            @RequestParam(defaultValue = "0") int page,
@@ -48,7 +48,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasAuthorities('user')")
+    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
     public Map<String, Object> getUser(@PathVariable("userId") @Min(1) long userId){
         log.info("Get user");
         UserResponse user = userService.findById(userId);
@@ -94,7 +94,7 @@ public class UserController {
     }
 
     @DeleteMapping("/delete/{userId}")
-    @PreAuthorize("hasAuthorities('admin')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Map<String, Object> deleteUser(@PathVariable @Min(1) long userId){
         log.info("Delete user");
         userService.deleted(userId);
