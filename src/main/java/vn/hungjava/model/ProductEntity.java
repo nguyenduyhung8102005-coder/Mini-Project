@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import vn.hungjava.common.ProductStatus;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Entity
@@ -27,7 +28,7 @@ public class ProductEntity {
     private String description;
 
     @Column(name = "price")
-    private float  price;
+    private BigDecimal price;
 
     @Column(name = "stock")
     private Integer stock;

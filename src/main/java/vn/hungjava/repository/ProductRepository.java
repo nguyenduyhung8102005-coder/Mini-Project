@@ -13,4 +13,5 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
             "or lower(u.description) like :keyword )")
     Page<ProductEntity> searchByKeyword(String keyword, Pageable pageable);
     ProductEntity findByName(String name);
+
 }

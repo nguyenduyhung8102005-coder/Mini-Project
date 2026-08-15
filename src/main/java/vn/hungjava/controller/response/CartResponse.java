@@ -3,6 +3,7 @@ package vn.hungjava.controller.response;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -15,7 +16,7 @@ public class CartResponse {
 
     private Long userId;
 
-    private Integer totalItems;
+    private Long totalItems;
 
     private BigDecimal totalPrice;
 

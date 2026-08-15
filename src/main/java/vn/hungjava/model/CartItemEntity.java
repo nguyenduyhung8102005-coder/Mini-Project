@@ -3,6 +3,8 @@ package vn.hungjava.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "tbl_cart_item")
 @Getter
@@ -24,8 +26,8 @@ public class CartItemEntity {
     private ProductEntity product;
 
     @Column(nullable = false)
-    private Integer quantity;
+    private int quantity;
 
     @Column(name = "price")
-    private float price;
+    private BigDecimal price;
 }

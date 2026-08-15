@@ -1,4 +1,10 @@
 package vn.hungjava.repository;
 
-public interface CartRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
+import vn.hungjava.model.CartEntity;
+
+import java.util.Optional;
+
+public interface CartRepository extends JpaRepository<CartEntity, Long> {
+    Optional<CartEntity> findByUserId(Long userId);
 }
