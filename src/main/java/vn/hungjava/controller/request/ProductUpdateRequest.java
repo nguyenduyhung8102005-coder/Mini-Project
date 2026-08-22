@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import vn.hungjava.common.ProductStatus;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 public class ProductUpdateRequest {
@@ -13,7 +15,7 @@ public class ProductUpdateRequest {
     private String name;
     private String description;
     @NotNull(message = "price must be not null")
-    private float price;
+    private BigDecimal price;
     private Integer stock;
     private String sku;
     private ProductStatus status;

@@ -8,6 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -162,12 +164,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(UserPasswordRequest user) {
-        UserEntity userPassword =  getUser(user.getId());
-        if(user.getPassword().equals(user.getConfirmPassword())){
-            userPassword.setPassword(encoder.encode(user.getPassword()));
+    public void changePassword(UserPasswordRequest request) {
+        UserEntity currentUser =  getCurentUser();
+        if (request.getPassword()
+                .equals(request.getConfirmPassword())) {
+
+            currentUser.setPassword(
+                    encoder.encode(
+                            request.getPassword()
+                    )
+            );
         }
-        userRepository.save(userPassword);
+        userRepository.save(currentUser);
 
     }
 
@@ -180,5 +188,18 @@ public class UserServiceImpl implements UserService {
 
     private UserEntity getUser(long id){
         return userRepository.findById(id).orElseThrow(() -> new ResouceNotFoundException("User not found"));
+    }
+
+    private UserEntity getCurentUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+
+            throw new InvalidDataException(
+                    "User is not authenticated"
+            );
+        }
+        String username = authentication.getName();
+        return userRepository.findByUsername(username);
     }
 }

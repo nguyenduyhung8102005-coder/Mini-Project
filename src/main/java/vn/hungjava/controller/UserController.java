@@ -82,7 +82,7 @@ public class UserController {
         return result;
     }
 
-    @PatchMapping("/update")
+    @PatchMapping("/change-password")
     public Map<String, Object> changePassword(@RequestBody @Valid UserPasswordRequest user){
         log.info("Change password");
         userService.changePassword(user);
