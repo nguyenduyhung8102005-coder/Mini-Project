@@ -12,7 +12,6 @@ import java.util.Date;
 @Getter
 @ToString
 public class UserUpdateRequest {
-    private long id;
     @NotNull(message = "firstName must be not null")
     private String firstName;
     @NotNull(message = "lastName must be not null")

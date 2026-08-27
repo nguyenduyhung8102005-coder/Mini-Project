@@ -59,7 +59,7 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String extractUsername(String token, TokenType type) {
-        log.info("extract username from token {}", token );
+        log.info("extract username from {} token", type);
         return extractClaims(type, token, Claims::getSubject);
     }
 
@@ -70,7 +70,7 @@ public class JwtServiceImpl implements JwtService {
 
     private Claims extractAllClaim(String token, TokenType type){
         try {
-            return Jwts.parserBuilder().setSigningKey(accessKey).build().parseClaimsJws(token).getBody();
+            return Jwts.parserBuilder().setSigningKey(getKey(type)).build().parseClaimsJws(token).getBody();
         } catch (SignatureException | ExpiredJwtException e) {
             throw new AccessDeniedException("Access denied, error: " + e.getMessage());
         }

@@ -149,7 +149,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void update(UserUpdateRequest user) {
         log.info("Updating user {}", user);
-        UserEntity userUpdate = getUser(user.getId());
+        UserEntity userUpdate = getCurentUser();
         userUpdate.setFirstName(user.getFirstName());
         userUpdate.setLastName(user.getLastName());
         userUpdate.setGender(user.getGender());
@@ -166,15 +166,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(UserPasswordRequest request) {
         UserEntity currentUser =  getCurentUser();
-        if (request.getPassword()
+        if (!request.getPassword()
                 .equals(request.getConfirmPassword())) {
 
-            currentUser.setPassword(
-                    encoder.encode(
-                            request.getPassword()
-                    )
+            throw new InvalidDataException(
+                    "Password and confirm password do not match"
             );
         }
+
+        currentUser.setPassword(
+                encoder.encode(request.getPassword())
+        );
+
         userRepository.save(currentUser);
 
     }

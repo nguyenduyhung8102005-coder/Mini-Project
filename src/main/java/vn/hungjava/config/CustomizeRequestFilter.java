@@ -43,14 +43,14 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         if(authHeader != null && authHeader.startsWith("Bearer ")) {
             authHeader = authHeader.substring(7);
-            log.info("Bearer Auth Header: {}", authHeader.substring(0, 20));
+//            log.info("Bearer Auth Header: {}", authHeader.substring(0, 20));
             String username = "";
             try {
                 username = jwtService.extractUsername(authHeader, TokenType.ACCESS_TOKEN);
                 log.info("Username : {}", username);
             } catch (AccessDeniedException e) {
                 log.info("Access denied {}", e.getMessage());
-                response.setStatus(HttpServletResponse.SC_OK);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
                 response.getWriter().write(errorResponse(e.getMessage()));

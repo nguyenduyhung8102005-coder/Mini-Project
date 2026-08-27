@@ -7,17 +7,21 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import vn.hungjava.common.TokenType;
 import vn.hungjava.controller.request.SignInRequest;
 import vn.hungjava.controller.response.TokenResponse;
 import vn.hungjava.exception.ResouceNotFoundException;
 import vn.hungjava.repository.UserRepository;
 import vn.hungjava.service.AuthenticationService;
 import vn.hungjava.service.JwtService;
+import vn.hungjava.service.UserServiceDetail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +34,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final PasswordEncoder encoder;
+    private final UserServiceDetail userServiceDetail;
 
     @Override
     public TokenResponse getAccessToken(SignInRequest request) {
@@ -60,7 +65,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public TokenResponse getRefreshToken(String request) {
-        return null;
+    public TokenResponse getRefreshToken(String refreshToken) {
+        String username = jwtService.extractUsername(
+                refreshToken,
+                TokenType.REFRESH_TOKEN
+        );
+
+        UserDetails userDetails =
+                userServiceDetail.loadUserByUsername(username);
+
+        List<String> authorities =
+                userDetails.getAuthorities()
+                        .stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList();
+
+        String newAccessToken =
+                jwtService.generateAccessToken(
+                        username,
+                        authorities
+                );
+
+        return TokenResponse.builder()
+                .accessToken(newAccessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 }
