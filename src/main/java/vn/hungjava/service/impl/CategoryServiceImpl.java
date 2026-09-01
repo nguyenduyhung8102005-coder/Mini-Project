@@ -90,21 +90,37 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public long save(CategoryCreationResquest req) {
-        log.info("Saving category {}", req);
 
-        CategoryEntity categoryByName = categoryRepository.findByName(req.getName());
-        if(categoryByName != null){
-            throw new InvalidDataException("Category already exists");
+        CategoryEntity existingCategory =
+                categoryRepository.findByName(
+                        req.getName()
+                );
+
+        if (existingCategory != null) {
+            throw new InvalidDataException(
+                    "Category already exists"
+            );
         }
 
-        CategoryEntity category = new CategoryEntity();
-        category.setName(req.getName());
-        category.setDescription(req.getDescription());
-        categoryRepository.save(category);
+        CategoryEntity category =
+                new CategoryEntity();
 
-        if(category.getId() != null){
-            List<ProductEntity> products = new ArrayList<>();
+        category.setName(req.getName());
+        category.setDescription(
+                req.getDescription()
+        );
+
+        CategoryEntity savedCategory =
+                categoryRepository.save(category);
+
+        if (req.getProducts() != null
+                && !req.getProducts().isEmpty()) {
+
+            List<ProductEntity> products =
+                    new ArrayList<>();
+
             req.getProducts().forEach(product -> {
+
                 ProductEntity productEntity = new ProductEntity();
                 productEntity.setName(product.getName());
                 productEntity.setDescription(product.getDescription());
@@ -112,14 +128,13 @@ public class CategoryServiceImpl implements CategoryService {
                 productEntity.setStock(product.getStock());
                 productEntity.setSku(product.getSku());
                 productEntity.setStatus(product.getStatus());
-                productEntity.setCategory(category);
+                productEntity.setCategory(savedCategory);
                 products.add(productEntity);
-
             });
-            log.info("Saving category {}", category);
             productRepository.saveAll(products);
         }
-        return category.getId();
+
+        return savedCategory.getId();
     }
 
     @Override

@@ -6,7 +6,18 @@ import lombok.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "tbl_cart_item")
+@Table(
+        name = "tbl_cart_item",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_cart_product",
+                        columnNames = {
+                                "cart_id",
+                                "product_id"
+                        }
+                )
+        }
+)
 @Getter
 @Setter
 @NoArgsConstructor

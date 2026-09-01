@@ -15,7 +15,7 @@ import vn.hungjava.controller.request.ProductUpdateRequest;
 import vn.hungjava.controller.response.ProductPageResponse;
 import vn.hungjava.controller.response.UserPageResponse;
 import vn.hungjava.service.ProductService;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -39,6 +39,9 @@ public class ProductController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize(
+            "hasAnyAuthority('ROLE_ADMIN', 'ROLE_MANAGER')"
+    )
     public Map<String, Object> addProduct(@RequestBody @Valid ProductCreationRequest product){
         log.info("Adding product {}", product);
         productService.save(product);
@@ -50,6 +53,9 @@ public class ProductController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize(
+            "hasAnyAuthority('ROLE_ADMIN', 'ROLE_MANAGER')"
+    )
     public Map<String, Object> updateProduct(@RequestBody @Valid ProductUpdateRequest product){
         log.info("updateProduct");
         productService.update(product);
@@ -61,6 +67,9 @@ public class ProductController {
     }
 
     @DeleteMapping("/delete/{productId}")
+    @PreAuthorize(
+            "hasAnyAuthority('ROLE_ADMIN', 'ROLE_MANAGER')"
+    )
     public Map<String, Object> deleteProduct(@PathVariable @Min(1) long productId){
         log.info("Delete product by id {}", productId);
         productService.delete(productId);

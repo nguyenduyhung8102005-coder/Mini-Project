@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import vn.hungjava.controller.request.CategoryCreationResquest;
@@ -53,6 +54,9 @@ public class CategoryController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize(
+            "hasAnyAuthority('ROLE_ADMIN', 'ROLE_MANAGER')"
+    )
     public Map<String, Object> createCategory(@RequestBody @Valid CategoryCreationResquest category){
         log.info("Create Category");
         categoryService.save(category);
@@ -64,6 +68,9 @@ public class CategoryController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize(
+            "hasAnyAuthority('ROLE_ADMIN', 'ROLE_MANAGER')"
+    )
     public Map<String, Object> updateCategory(@RequestBody @Valid CategoryUpdateRequest category){
         categoryService.update(category);
         Map<String,  Object> result = new LinkedHashMap<>();
@@ -73,6 +80,9 @@ public class CategoryController {
         return  result;
     }
     @DeleteMapping("/delete/{categoryId}")
+    @PreAuthorize(
+            "hasAnyAuthority('ROLE_ADMIN', 'ROLE_MANAGER')"
+    )
     public Map<String, Object> deleteCategory(@PathVariable @Min(1) long categoryId){
         log.info("Delete Category");
         categoryService.delete(categoryId);

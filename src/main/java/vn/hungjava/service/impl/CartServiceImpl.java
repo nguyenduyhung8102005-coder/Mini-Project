@@ -43,7 +43,7 @@ public class CartServiceImpl implements CartService {
             throw new InvalidDataException("Quantity must be greater than 0");
         }
         //2 lay user hien tai
-        UserEntity user = getCurrentUser();
+        UserEntity user = getCurrentUserForUpdate();
 
         //3 tim product
         ProductEntity product =
@@ -116,12 +116,13 @@ public class CartServiceImpl implements CartService {
         UserEntity user = getCurrentUser();
 
         // 2. Tìm cart
-        CartEntity cart = cartRepository
-                .findByUserId(user.getId())
-                .orElseThrow(() ->
-                        new InvalidDataException("Cart not found")
-                );
+        Optional<CartEntity> optionalCart =
+                cartRepository.findByUserId(user.getId());
+        if (optionalCart.isEmpty()) {
+            return emptyCart(user);
+        }
 
+        CartEntity cart = optionalCart.get();
         // 3. Lấy danh sách cart item
         List<CartItemEntity> cartItems = cart.getCartItems();
 
@@ -172,6 +173,45 @@ public class CartServiceImpl implements CartService {
 
         // 7. return
         return cartResponse;
+    }
+
+    private CartResponse emptyCart(UserEntity user) {
+
+        CartResponse response = new CartResponse();
+
+        response.setCartId(null);
+        response.setUserId(user.getId());
+        response.setTotalItems(0L);
+        response.setTotalPrice(BigDecimal.ZERO);
+        response.setItems(List.of());
+
+        return response;
+    }
+
+    private UserEntity getCurrentUserForUpdate() {
+
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+
+            throw new InvalidDataException(
+                    "User is not authenticated"
+            );
+        }
+
+        String username = authentication.getName();
+
+        return userRepository
+                .findByUsernameForUpdate(username)
+                .orElseThrow(() ->
+                        new InvalidDataException(
+                                "User not found"
+                        )
+                );
     }
 
     @Override
