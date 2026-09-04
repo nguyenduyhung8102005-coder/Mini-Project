@@ -23,6 +23,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import vn.hungjava.common.TokenType;
+import vn.hungjava.model.UserEntity;
 import vn.hungjava.service.JwtService;
 import vn.hungjava.service.UserServiceDetail;
 
@@ -44,10 +45,15 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
         if(authHeader != null && authHeader.startsWith("Bearer ")) {
             authHeader = authHeader.substring(7);
 //            log.info("Bearer Auth Header: {}", authHeader.substring(0, 20));
-            String username = "";
+            Long userId;
+            long tokenVersion;
             try {
-                username = jwtService.extractUsername(authHeader, TokenType.ACCESS_TOKEN);
-                log.info("Username : {}", username);
+                userId = jwtService.extractUserId(authHeader, TokenType.ACCESS_TOKEN);
+                tokenVersion = jwtService.extractTokenVersion(
+                        authHeader,
+                        TokenType.ACCESS_TOKEN
+                );
+                log.info("Username : {}", userId);
             } catch (AccessDeniedException e) {
                 log.info("Access denied {}", e.getMessage());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -57,7 +63,31 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
                 return;
             }
 
-            UserDetails userDetails = userServiceDetail.loadUserByUsername(username);
+            UserEntity userDetails =
+                    (UserEntity) userServiceDetail.loadUserById(userId);
+
+            if (tokenVersion != userDetails.getTokenVersion()) {
+                log.warn(
+                        "Rejecting revoked access token for user ID: {}",
+                        userId
+                );
+                writeUnauthorizedResponse(response, "Token has been revoked");
+                return;
+            }
+
+            if (!userDetails.isEnabled()) {
+                log.warn(
+                        "Rejecting access token because account is inactive: {}",
+                        userId
+                );
+
+                writeUnauthorizedResponse(
+                        response,
+                        "Account is inactive"
+                );
+
+                return;
+            }
 
             SecurityContext  securityContext = SecurityContextHolder.createEmptyContext();
             UsernamePasswordAuthenticationToken  authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -70,12 +100,23 @@ public class CustomizeRequestFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private void writeUnauthorizedResponse(
+            HttpServletResponse response,
+            String message
+    ) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(errorResponse(message));
+    }
+
+
     private String errorResponse(String message) {
         try {
             ErrorResponse error = new ErrorResponse();
             error.setTimestamp(new Date());
-            error.setError("Forbidden");
-            error.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            error.setError("Unauthorized");
+            error.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             error.setMessage(message);
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();

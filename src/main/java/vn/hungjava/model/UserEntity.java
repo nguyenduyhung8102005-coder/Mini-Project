@@ -54,6 +54,9 @@ public class UserEntity extends AbstractEntity<Long> implements UserDetails, Ser
     @Column(name = "password",  length = 255)
     private String password;
 
+    @Column(name = "token_version", nullable = false)
+    private long tokenVersion = 0L;
+
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "type")

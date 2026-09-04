@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -166,7 +167,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(UserPasswordRequest request) {
         UserEntity currentUser =  getCurentUser();
-        if (!request.getPassword()
+        if (!request.getNewPassword()
                 .equals(request.getConfirmPassword())) {
 
             throw new InvalidDataException(
@@ -174,8 +175,20 @@ public class UserServiceImpl implements UserService {
             );
         }
 
+        if (!encoder.matches(
+                request.getCurrentPassword(),
+                currentUser.getPassword()
+        )) {
+            throw new BadCredentialsException(
+                    "Current password is incorrect"
+            );
+        }
+
         currentUser.setPassword(
-                encoder.encode(request.getPassword())
+                encoder.encode(request.getNewPassword())
+        );
+        currentUser.setTokenVersion(
+                currentUser.getTokenVersion() + 1
         );
 
         userRepository.save(currentUser);
@@ -204,5 +217,57 @@ public class UserServiceImpl implements UserService {
         }
         String username = authentication.getName();
         return userRepository.findByUsername(username);
+    }
+
+    @Override
+    public UserResponse findCurrentUser() {
+        log.info("Get current user");
+
+        return toUserResponse(
+                getCurrentUser()
+        );
+    }
+
+    private UserEntity getCurrentUser() {
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()) {
+
+            throw new InvalidDataException(
+                    "User is not authenticated"
+            );
+        }
+
+        Object principal =
+                authentication.getPrincipal();
+
+        if (!(principal
+                instanceof UserEntity currentUser)) {
+
+            throw new InvalidDataException(
+                    "Authenticated user is invalid"
+            );
+        }
+
+        return currentUser;
+    }
+
+    private UserResponse toUserResponse(
+            UserEntity userEntity
+    ) {
+        return UserResponse.builder()
+                .id(userEntity.getId())
+                .firstName(userEntity.getFirstName())
+                .lastName(userEntity.getLastName())
+                .gender(userEntity.getGender())
+                .birthDay(userEntity.getBirthDay())
+                .userName(userEntity.getUsername())
+                .email(userEntity.getEmail())
+                .phone(userEntity.getPhone())
+                .build();
     }
 }

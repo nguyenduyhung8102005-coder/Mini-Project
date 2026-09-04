@@ -48,7 +48,9 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_USER')")
+    @PreAuthorize(
+            "hasAnyAuthority('ROLE_ADMIN','ROLE_MANAGER')"
+    )
     public Map<String, Object> getUser(@PathVariable("userId") @Min(1) long userId){
         log.info("Get user");
         UserResponse user = userService.findById(userId);
@@ -102,6 +104,30 @@ public class UserController {
         result.put("status", HttpStatus.OK.value());
         result.put("message", "Delete user successfully");
         result.put("data", "");
+        return result;
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public Map<String, Object> getCurrentUser() {
+        log.info("Get current user");
+
+        UserResponse user =
+                userService.findCurrentUser();
+
+        Map<String, Object> result =
+                new LinkedHashMap<>();
+
+        result.put(
+                "status",
+                HttpStatus.OK.value()
+        );
+        result.put(
+                "message",
+                "Get current user"
+        );
+        result.put("data", user);
+
         return result;
     }
 

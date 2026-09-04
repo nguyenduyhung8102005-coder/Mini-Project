@@ -215,17 +215,82 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
+    @Transactional
     public void updateQuantity(Long cartItemId, Integer quantity) {
+        validateCartItemId(cartItemId);
+
+        if (quantity == null || quantity <= 0) {
+            throw new InvalidDataException(
+                    "Quantity must be greater than 0"
+            );
+        }
+
+        UserEntity user = getCurrentUserForUpdate();
+        CartItemEntity item = getOwnedCartItemForUpdate(
+                cartItemId,
+                user.getId()
+        );
+
+        ProductEntity product = item.getProduct();
+        if (product.getStatus() != ProductStatus.ACTIVE) {
+            throw new InvalidDataException(
+                    "Product is not available"
+            );
+        }
+
+        if (product.getStock() == null
+                || quantity > product.getStock()) {
+            throw new InvalidDataException("Insufficient stock");
+        }
+
+        item.setQuantity(quantity);
+        cartItemRepository.save(item);
 
     }
 
     @Override
+    @Transactional
     public void removeProduct(Long cartItemId) {
+        validateCartItemId(cartItemId);
+
+        UserEntity user = getCurrentUserForUpdate();
+        CartItemEntity item = getOwnedCartItemForUpdate(
+                cartItemId,
+                user.getId()
+        );
+
+        cartItemRepository.delete(item);
 
     }
 
     @Override
+    @Transactional
     public void clearCart() {
+        UserEntity user = getCurrentUserForUpdate();
 
+        cartRepository.findByUserId(user.getId())
+                .ifPresent(cart -> cart.getCartItems().clear());
+
+    }
+
+    private CartItemEntity getOwnedCartItemForUpdate(
+            Long cartItemId,
+            Long userId
+    ) {
+        return cartItemRepository
+                .findOwnedItemForUpdate(cartItemId, userId)
+                .orElseThrow(() ->
+                        new ResouceNotFoundException(
+                                "Cart item not found"
+                        )
+                );
+    }
+
+    private void validateCartItemId(Long cartItemId) {
+        if (cartItemId == null || cartItemId <= 0) {
+            throw new InvalidDataException(
+                    "Cart item ID must be greater than 0"
+            );
+        }
     }
 }

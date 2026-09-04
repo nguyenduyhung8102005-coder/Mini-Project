@@ -38,29 +38,62 @@ public class JwtServiceImpl implements JwtService {
     @Value("${jwt.refreshKey}")
     private String refreshKey;
 
+    private static final String TOKEN_VERSION_CLAIM =
+            "tokenVersion";
 
     @Override
-    public String generateAccessToken(String username, List<String> authorities) {
-        log.info("generate access token for username {} with authorities {}", username, authorities );
+    public String generateAccessToken(Long userId, long tokenVersion, List<String> authorities) {
+        log.info("generate access token for user ID {} with authorities {}", userId, authorities );
         Map<String, Object> claims =  new HashMap<>();
 
         claims.put("role", authorities);
-        return generateToken(claims, username);
+        claims.put(
+                TOKEN_VERSION_CLAIM,
+                tokenVersion
+        );
+        return generateToken(claims, userId);
     }
 
     @Override
-    public String generateRefreshToken(String username, List<String> authorities) {
-        log.info("generate refresh token for username {} with authorities {}", username, authorities );
+    public String generateRefreshToken(Long userId, long tokenVersion, List<String> authorities) {
+        log.info("generate refresh token for user ID {} with authorities {}", userId, authorities );
         Map<String, Object> claims =  new HashMap<>();
 
         claims.put("role", authorities);
-        return generateRefreshToken(claims, username);
+        claims.put(
+                TOKEN_VERSION_CLAIM,
+                tokenVersion
+        );
+        return generateRefreshToken(claims, userId);
     }
 
     @Override
-    public String extractUsername(String token, TokenType type) {
-        log.info("extract username from {} token", type);
-        return extractClaims(type, token, Claims::getSubject);
+    public Long extractUserId(String token, TokenType type) {
+        log.info("extract user ID from {} token", type);
+        String subject = extractClaims(type, token, Claims::getSubject);
+
+        try {
+            return Long.valueOf(subject);
+        } catch (NumberFormatException e) {
+            throw new AccessDeniedException(
+                    "Access denied, invalid token subject"
+            );
+        }
+    }
+
+    @Override
+    public long extractTokenVersion(String token, TokenType type) {
+        Object value = extractClaims(
+                type,
+                token,
+                claims -> claims.get(TOKEN_VERSION_CLAIM)
+        );
+
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+
+        return -1L;
     }
 
     private <T> T extractClaims(TokenType type, String token, Function<Claims, T> claimsExtractor) {
@@ -76,11 +109,11 @@ public class JwtServiceImpl implements JwtService {
         }
     }
 
-    private String generateToken(Map<String, Object> claims, String username){
-        log.info("generate token for user {}", username );
+    private String generateToken(Map<String, Object> claims, Long userId){
+        log.info("generate token for user {}", userId );
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * expiryMinutes))
                 .signWith(getKey(ACCESS_TOKEN), SignatureAlgorithm.HS256)

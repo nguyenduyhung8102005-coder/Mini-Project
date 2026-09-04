@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -18,6 +19,7 @@ import vn.hungjava.common.TokenType;
 import vn.hungjava.controller.request.SignInRequest;
 import vn.hungjava.controller.response.TokenResponse;
 import vn.hungjava.exception.ResouceNotFoundException;
+import vn.hungjava.model.UserEntity;
 import vn.hungjava.repository.UserRepository;
 import vn.hungjava.service.AuthenticationService;
 import vn.hungjava.service.JwtService;
@@ -40,8 +42,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public TokenResponse getAccessToken(SignInRequest request) {
         log.info("get access token");
         List<String> authorities = new ArrayList<>();
+        Long userId;
+        long tokenVersion;
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+            UserEntity authenticatedUser =
+                    (UserEntity) authentication.getPrincipal();
+            userId = authenticatedUser.getId();
+            tokenVersion = authenticatedUser.getTokenVersion();
+
             log.info("isAuthenticated = {}", authentication.isAuthenticated());
             log.info("Authorities: {}", authentication.getAuthorities().toString());
 
@@ -56,8 +65,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 //        if (user == null) {
 //            throw new UsernameNotFoundException("User not found");
 //        }
-        String accessToken = jwtService.generateAccessToken(request.getUsername(), authorities);
-        String refreshToken = jwtService.generateRefreshToken(request.getUsername(), authorities);
+        String accessToken = jwtService.generateAccessToken(userId, tokenVersion, authorities);
+        String refreshToken = jwtService.generateRefreshToken(userId, tokenVersion, authorities);
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -66,13 +75,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public TokenResponse getRefreshToken(String refreshToken) {
-        String username = jwtService.extractUsername(
+        Long userId = jwtService.extractUserId(
                 refreshToken,
                 TokenType.REFRESH_TOKEN
         );
 
+        long tokenVersion = jwtService.extractTokenVersion(
+                refreshToken,
+                TokenType.REFRESH_TOKEN
+        );
+
+
         UserDetails userDetails =
-                userServiceDetail.loadUserByUsername(username);
+                userServiceDetail.loadUserById(userId);
+
+        if (!userDetails.isEnabled()) {
+            log.warn(
+                    "Rejecting refresh token because account is inactive: {}",
+                    userId
+            );
+            throw new DisabledException("Account is inactive");
+        }
 
         List<String> authorities =
                 userDetails.getAuthorities()
@@ -82,7 +105,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         String newAccessToken =
                 jwtService.generateAccessToken(
-                        username,
+                        userId,
+                        tokenVersion,
                         authorities
                 );
 

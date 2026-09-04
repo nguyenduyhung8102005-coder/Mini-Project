@@ -17,4 +17,5 @@ public interface UserService {
     void update(UserUpdateRequest req);
     void changePassword(UserPasswordRequest user);
     void deleted(long id);
+    UserResponse findCurrentUser();
 }

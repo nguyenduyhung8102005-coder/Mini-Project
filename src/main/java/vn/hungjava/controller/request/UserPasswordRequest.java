@@ -5,8 +5,10 @@ import lombok.Getter;
 
 @Getter
 public class UserPasswordRequest {
-    @NotBlank(message = "password must be not blank")
-    private String password;
+    @NotBlank(message = "currentPassword must be not blank")
+    private String currentPassword;
+    @NotBlank(message = "newPassword must be not blank")
+    private String newPassword;
     @NotBlank(message = "confirmPassword must be not blank")
     private String confirmPassword;
 }

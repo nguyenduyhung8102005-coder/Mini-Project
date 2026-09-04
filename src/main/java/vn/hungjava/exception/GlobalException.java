@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -182,6 +183,30 @@ public class GlobalException {
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
         errorResponse.setStatus(CONFLICT.value());
         errorResponse.setError(CONFLICT.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+
+        return errorResponse;
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleAuthenticationException(
+            AuthenticationException e,
+            WebRequest request
+    ) {
+        ErrorResponse errorResponse = new ErrorResponse();
+
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setStatus(
+                HttpStatus.UNAUTHORIZED.value()
+        );
+        errorResponse.setPath(
+                request.getDescription(false)
+                        .replace("uri=", "")
+        );
+        errorResponse.setError(
+                HttpStatus.UNAUTHORIZED.getReasonPhrase()
+        );
         errorResponse.setMessage(e.getMessage());
 
         return errorResponse;
