@@ -23,6 +23,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Page<UserEntity> searchByKeyword(String keyword, Pageable pageable);
     UserEntity findByEmail(String email);
     UserEntity findByUsername(String username);
+    boolean existsByEmailIgnoreCase(String email);
+    boolean existsByUsername(String username);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             select u

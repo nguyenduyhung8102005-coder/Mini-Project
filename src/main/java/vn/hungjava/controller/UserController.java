@@ -63,6 +63,8 @@ public class UserController {
     }
 
     @PostMapping("/add")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Object> postUser(@RequestBody @Valid UserCreationRequest user){
         log.info("Post user");
         Map<String, Object> result = new LinkedHashMap<>();

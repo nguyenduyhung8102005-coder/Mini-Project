@@ -46,12 +46,12 @@ public class UserServiceImpl implements UserService {
             Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
             Matcher matcher = pattern.matcher(sort);
             if(matcher.find()){
-               String columName =  matcher.group(1);
-               if(matcher.group(3).equalsIgnoreCase("esc")){
-                   order =  new Sort.Order(Sort.Direction.ASC, columName);
-               } else {
-                   order =  new Sort.Order(Sort.Direction.DESC, columName);
-               }
+                String columName =  matcher.group(1);
+                if(matcher.group(3).equalsIgnoreCase("esc")){
+                    order =  new Sort.Order(Sort.Direction.ASC, columName);
+                } else {
+                    order =  new Sort.Order(Sort.Direction.DESC, columName);
+                }
             }
         }
 
@@ -143,8 +143,8 @@ public class UserServiceImpl implements UserService {
         user.setUsername(req.getUserName());
         user.setUserType(req.getUserType());
         user.setStatus(UserStatus.NONE);
-        userRepository.save(user);
-        return 0;
+        UserEntity savedUser = userRepository.save(user);
+        return savedUser.getId();
     }
 
     @Override

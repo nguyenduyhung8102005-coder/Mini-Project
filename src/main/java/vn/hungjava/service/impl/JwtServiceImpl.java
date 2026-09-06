@@ -10,7 +10,6 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import vn.hungjava.common.TokenType;
 import vn.hungjava.exception.InvalidDataException;
@@ -120,11 +119,11 @@ public class JwtServiceImpl implements JwtService {
                 .compact();
     }
 
-    private String generateRefreshToken(Map<String, Object> claims, String username){
-        log.info("generate refresh token for user {}", username );
+    private String generateRefreshToken(Map<String, Object> claims, Long userId){
+        log.info("generate refresh token for user ID {}", userId );
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * expiryDay))
                 .signWith(getKey(REFRESH_TOKEN), SignatureAlgorithm.HS256)
